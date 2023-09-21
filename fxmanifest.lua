@@ -6,13 +6,24 @@ version '1.0.0'
 
 shared_scripts {
     'config.lua',
-    '@qb-core/shared/locale.lua',
+    '@qbx-core/shared/locale.lua',
     'locales/en.lua',
     'locales/*.lua',
+    '@ox_lib/init.lua',
+    '@qbx-core/import.lua',
 }
 
-client_script 'client/main.lua'
-server_script 'server/main.lua'
+modules {
+    'qbx-core:core',
+    'qbx-core:playerdata',
+    'qbx-core:utils',
+}
+
+client_scripts {
+    'client/*.lua'
+}
+server_scripts {
+    'server/*.lua'
+}
 
 lua54 'yes'
- 

@@ -3,27 +3,27 @@ Config = {}
 Config.BailPrice = 100
 Config.Phone = 'qb' -- qb / gks / qs
 -- Enable if using renewed's qb-phone
-Config.reqTow = false
+Config.reqTow = true
 Config.dropprice = math.random(1000,2000) -- Price of each dropoff
 Config.waitbetweenjobs = 10 -- in seconds
-Config.fuel = 'cdn-fuel'
 
 Config.Vehicles = {
     ["flatbed"] = "Flatbed",
     ["Slamtruck"] = "Slamtruck",
 }
+
 Config.PedHash = 's_m_m_gaffer_01'
-Config.PedPos = vector4(-211.92, -1163.54, 23.05, 193.95)
+Config.PedPos = vec4(496.72, -1338.4, 29.32, 10.51)
 Config.payPedHash = 'ig_floyd'
-Config.payPedPos = vector4(-193.34, -1162.34, 23.67, 274.05)
+Config.payPedPos = vec4(476.65, -1316.36, 29.21, 277.02)
 Config.Locations = {
     ["main"] = {
         label = "Towing HQ",
-        coords = vector4(-191.89, -1162.74, 23.67, 77.26),
+        coords = vec4(476.65, -1316.36, 29.21, 277.02),
     },
     ["vehicle"] = {
         label = "Flatbed",
-        coords = vector4(-211.6, -1167.99, 23.04, 50.96),
+        coords = vec4(492.12, -1330.9, 29.34, 321.29),
     },
     ["towspots"] = {
         [1] =  {model = "sultanrs", coords = vector3(-2480.8720703125, -211.96409606934, 17.397672653198)},

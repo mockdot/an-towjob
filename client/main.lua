@@ -1,4 +1,3 @@
-local QBCore = exports['qb-core']:GetCoreObject()
 local PlayerJob = {}
 local JobsDone = 0
 local NpcOn = false
@@ -8,7 +7,6 @@ local LastVehicle = 0
 local VehicleSpawned = false
 local selectedVeh = nil
 local ranWorkThread = false
-local towable = false
 local towout = false
 local cryptostick = false
 
@@ -28,7 +26,7 @@ end
 CreateThread(function()
     QBCore.Functions.LoadModel(Config.PedHash)
     towped = CreatePed(0, Config.PedHash, Config.PedPos.x, Config.PedPos.y, Config.PedPos.z-1.0, Config.PedPos.w, false, false)
-    TaskStartScenarioInPlace(towped,  true)
+    TaskStartScenarioInPlace(towped, true)
     FreezeEntityPosition(towped, true)
     SetEntityInvincible(towped, true)
     SetBlockingOfNonTemporaryEvents(towped, true)
@@ -58,8 +56,8 @@ CreateThread(function()
         distance = 2.0
     })
     QBCore.Functions.LoadModel(Config.payPedHash)
-    payped = CreatePed(0, Config.payPedHash, Config.payPedPos.x, Config.payPedPos.y, Config.payPedPos.z-1.0, Config.payPedPos.w, false, false)
-    TaskStartScenarioInPlace(payped,  true)
+    payped = CreatePed(0, Config.payPedHash, Config.payPedPos.x, Config.payPedPos.y, Config.payPedPos.z - 1.0, Config.payPedPos.w, false, false)
+    TaskStartScenarioInPlace(payped, true)
     FreezeEntityPosition(payped, true)
     SetEntityInvincible(payped, true)
     SetBlockingOfNonTemporaryEvents(payped, true)
@@ -147,34 +145,22 @@ function getnewvehicle()
 end
 
 local function getVehicleInDirection(coordFrom, coordTo)
-    local rayHandle = CastRayPointToPoint(coordFrom.x, coordFrom.y, coordFrom.z, coordTo.x, coordTo.y, coordTo.z, 10, PlayerPedId(), 0)
-    local a, b, c, d, vehicle = GetRaycastResult(rayHandle)
+    local rayHandle = CastRayPointToPoint(coordFrom.x, coordFrom.y, coordFrom.z, coordTo.x, coordTo.y, coordTo.z, 10, cache.ped, 0)
+    local _, _, _, _, vehicle = GetRaycastResult(rayHandle)
     return vehicle
 end
 
+---@param vehicle any
+---@return boolean
 local function isTowVehicle(vehicle)
-    local retval = false
-    for k, v in pairs(Config.Vehicles) do
-        if GetEntityModel(vehicle) == GetHashKey(k) then
-            retval = true
+    local vehicleModel = GetEntityModel(vehicle)
+    for k, _ in pairs(Config.Vehicles) do
+        if vehicleModel == joaat(k) then
+            print('true')
+            return true
         end
     end
-    return retval
-end
-
-local function DrawText3D(x, y, z, text)
-    SetTextScale(0.35, 0.35)
-    SetTextFont(4)
-    SetTextProportional(1)
-    SetTextColour(255, 255, 255, 215)
-    SetTextEntry("STRING")
-    SetTextCentre(true)
-    AddTextComponentString(text)
-    SetDrawOrigin(x,y,z, 0)
-    DrawText(0.0, 0.0)
-    local factor = (string.len(text)) / 370
-    DrawRect(0.0, 0.0+0.0125, 0.017+ factor, 0.03, 0, 0, 0, 75)
-    ClearDrawOrigin()
+    return false
 end
 
 local function doCarDamage(currentVehicle)
@@ -276,7 +262,7 @@ RegisterNetEvent('an-tow:client:SpawnVehicle', function()
         SetVehicleNumberPlateText(veh, "TOW"..tostring(math.random(1000, 9999)))
         SetEntityHeading(veh, coords.w)
         NetworkRequestControlOfEntity(veh)
-        exports[Config.fuel]:SetFuel(veh, 100.0)
+        Entity(veh).state.fuel = 100
         SetEntityAsMissionEntity(veh, true, true)
         CloseMenuFull()
         TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))
@@ -387,10 +373,10 @@ RegisterNetEvent('jobs:client:ToggleNpc', function()
 end)
 
 RegisterNetEvent('an-tow:client:TowVehicle', function()
-    local vehicle = GetVehiclePedIsIn(PlayerPedId(), true)
+    local vehicle = GetVehiclePedIsIn(cache.ped, true)
     if isTowVehicle(vehicle) then
         if CurrentTow == nil then
-            local playerped = PlayerPedId()
+            local playerped = cache.ped
             local coordA = GetEntityCoords(playerped, 1)
             local coordB = GetOffsetFromEntityInWorldCoords(playerped, 0.0, 5.0, 0.0)
             local targetVehicle = getVehicleInDirection(coordA, coordB)
@@ -403,7 +389,7 @@ RegisterNetEvent('an-tow:client:TowVehicle', function()
                         return
                     end
                 end
-                if not IsPedInAnyVehicle(PlayerPedId()) then
+                if not IsPedInAnyVehicle(cache.ped) then
                     if vehicle ~= targetVehicle then
                         NetworkRequestControlOfEntity(targetVehicle)
                         local towPos = GetEntityCoords(vehicle)
@@ -421,7 +407,7 @@ RegisterNetEvent('an-tow:client:TowVehicle', function()
                                 anim = "fixing_a_ped",
                                 flags = 16,
                             }, {}, {}, function() -- Done
-                                StopAnimTask(PlayerPedId(), "mini@repair", "fixing_a_ped", 1.0)
+                                StopAnimTask(cache.ped, "mini@repair", "fixing_a_ped", 1.0)
                                 if JobStarted then
                                     sendpopups(Lang:t('info.take_vehicle_impound_lot'))
                                 else
@@ -456,7 +442,7 @@ RegisterNetEvent('an-tow:client:TowVehicle', function()
                                 end
                                 QBCore.Functions.Notify(Lang:t('success.vehicle_towed'), "success", 5000)
                             end, function() -- Cancel
-                                StopAnimTask(PlayerPedId(), "mini@repair", "fixing_a_ped", 1.0)
+                                StopAnimTask(cache.ped, "mini@repair", "fixing_a_ped", 1.0)
                                 QBCore.Functions.Notify(Lang:t('error.failed'), "error")
                             end)
                         end
@@ -473,7 +459,7 @@ RegisterNetEvent('an-tow:client:TowVehicle', function()
                     anim = "fixing_a_ped",
                     flags = 16,
                 }, {}, {}, function() -- Done
-                    StopAnimTask(PlayerPedId(), "mini@repair", "fixing_a_ped", 1.0)
+                    StopAnimTask(cache.ped, "mini@repair", "fixing_a_ped", 1.0)
                     local modelName = GetDisplayNameFromVehicleModel(selectedVeh)
                     if  modelName == 'SLAMTRUCK' then
                         NetworkRequestControlOfEntity(CurrentTow)
@@ -508,7 +494,7 @@ RegisterNetEvent('an-tow:client:TowVehicle', function()
                     end
 
                 end, function() -- Cancel
-                    StopAnimTask(PlayerPedId(), "mini@repair", "fixing_a_ped", 1.0)
+                    StopAnimTask(cache.ped, "mini@repair", "fixing_a_ped", 1.0)
                     QBCore.Functions.Notify(Lang:t('error.failed'), "error", 5000)
                 end)
             end
@@ -520,7 +506,7 @@ end)
 RegisterNetEvent('an-tow:client:TakeOutVehicle', function(data)
     local coords = Config.Locations["vehicle"].coords
     coords = vector3(coords.x, coords.y, coords.z)
-    local ped = PlayerPedId()
+    local ped = cache.ped
     local pos = GetEntityCoords(ped)
     towout = true
         local vehicleInfo = data.vehicle
@@ -531,7 +517,7 @@ end)
 RegisterNetEvent('an-tow:client:SelectVehicle', function()
     local coords = Config.Locations["vehicle"].coords
     coords = vector3(coords.x, coords.y, coords.z)
-    local ped = PlayerPedId()
+    local ped = cache.ped
     local pos = GetEntityCoords(ped)
         MenuGarage()
 end)
@@ -547,7 +533,7 @@ function RunWorkThread()
 
             while LocalPlayer.state.isLoggedIn and PlayerJob.name == "tow" do
                 local sleep = 1000
-                local pos = GetEntityCoords(PlayerPedId())
+                local pos = GetEntityCoords(cache.ped)
                 local vehicleCoords = vector3(Config.Locations["vehicle"].coords.x, Config.Locations["vehicle"].coords.y, Config.Locations["vehicle"].coords.z)
                 local mainCoords = vector3(Config.Locations["main"].coords.x, Config.Locations["main"].coords.y, Config.Locations["main"].coords.z)
 
@@ -556,7 +542,7 @@ function RunWorkThread()
                         Wait(Config.waitbetweenjobs + 3 * 1000)
                         VehicleSpawned = true
                         QBCore.Functions.SpawnVehicle(CurrentLocation.model, function(veh)
-                            exports[Config.fuel]:SetFuel(veh, 0.0)
+                            Entity(veh).state.fuel = 0
                             if math.random(1,2) == 1 then
                                 doCarDamage(veh)
                             end
@@ -601,9 +587,11 @@ end)
 
 RegisterNetEvent("an-tow:parkcar")
 AddEventHandler("an-tow:parkcar", function()
-    local coords = vector3(-209.43, -1169.82, 23.04)
-    local closestVehicle, distance = QBCore.Functions.GetClosestVehicle(coords)
-    if distance < 40 then -- distance limiter to make sure it's close enough change as you wish
+    local coords = vec3(493.04, -1332.46, 29.34)
+    local closestVehicle, vehicleCoords = lib.getClosestVehicle(coords, 2, false)
+    local playerCoords = GetEntityCoords(cache.ped)
+    local distance = #(playerCoords - vehicleCoords)
+    if distance < 10 then -- distance limiter to make sure it's close enough change as you wish
         local isTruck = isTowVehicle(closestVehicle) -- uses existing function so will work as normal
         if isTruck then
             towout = false
@@ -622,7 +610,7 @@ AddEventHandler("an-tow:parkcar", function()
         else
             print(Lang:t('error.closest_vehicle_not_delivery_truck'))
             QBCore.Functions.Notify(Lang:t('error.closest_vehicle_not_delivery_truck'), "error", 5000)
-        end       
+        end
     else
         print(Lang:t('error.no_vehicle_nearby'))
         QBCore.Functions.Notify(Lang:t('error.no_vehicle_nearby'), "error", 5000)
@@ -636,9 +624,9 @@ CreateThread(function()
                 icon = "fa-solid fa-magnifying-glass",
                 label = Lang:t('info.tow'),
                 canInteract = function(entity)
-                    local oldtruck = GetVehiclePedIsIn(PlayerPedId(),true)
-                    local flatbed = GetHashKey('flatbed')
-                    local slamtruck = GetHashKey('slamtruck')
+                    local oldtruck = GetVehiclePedIsIn(cache.ped,true)
+                    local flatbed = `flatbed`
+                    local slamtruck = `slamtruck`
                     if GetEntityModel(oldtruck) == flatbed or GetEntityModel(oldtruck) == slamtruck then return true end
                         return false
                 end,
