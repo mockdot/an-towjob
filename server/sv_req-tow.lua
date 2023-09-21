@@ -1,10 +1,7 @@
-local QBCore = exports['qb-core']:GetCoreObject()
-
 RegisterServerEvent('an-tow:sendTowRequest')
 AddEventHandler('an-tow:sendTowRequest', function(plate, coords)
     local src = source
     local players = QBCore.Functions.GetPlayers()
-    print(DebugPrint(players))
     for _, playerId in ipairs(players) do
         local player = QBCore.Functions.GetPlayer(tonumber(playerId))
         if player ~= nil and player.PlayerData.job.name == 'tow' then

@@ -1,5 +1,3 @@
-local QBCore = exports['qb-core']:GetCoreObject()
-local PaymentTax = 15
 local Bail = {}
 
 RegisterNetEvent('an-tow:server:DoBail', function(bool, vehInfo)
@@ -56,7 +54,7 @@ RegisterNetEvent('an-tow:server:getpaid', function(drops)
         bonus = math.ceil((DropPrice / 10) * 12)
     end
     local price = (DropPrice * drops) + bonus
-    local payment = price 
+    local payment = price
 
     Player.Functions.AddJobReputation(1)
     Player.Functions.AddMoney("bank", payment, "tow-salary")
@@ -64,6 +62,6 @@ RegisterNetEvent('an-tow:server:getpaid', function(drops)
     
 end)
 
-QBCore.Commands.Add("npc", Lang:t('info.toggle_npc_job'), {}, false, function(source, args)
+QBCore.Commands.Add("npc", Lang:t('info.toggle_npc_job'), {}, false, function(source)
 	TriggerClientEvent("jobs:client:ToggleNpc", source)
 end)

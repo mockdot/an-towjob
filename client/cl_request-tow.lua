@@ -1,4 +1,4 @@
-if PlayerData.job.name ~= 'tow' then
+--if PlayerData.job.name ~= 'tow' then
     local options = {
         {
             icon = "fas fa-truck",
@@ -8,7 +8,7 @@ if PlayerData.job.name ~= 'tow' then
         },
     }
     exports.ox_target:addGlobalVehicle(options)
-end
+--end
 
 RegisterNetEvent('an-tow:requestTow')
 AddEventHandler('an-tow:requestTow', function()
@@ -24,9 +24,25 @@ end)
 RegisterNetEvent('an-tow:requestResponse')
 AddEventHandler('an-tow:requestResponse', function(towDriverName, accepted)
     if accepted then
-        exports['qb-phone']:PhoneNotification('Tow request accepted by ' .. towDriverName, 'They will be there shortly!', '#9f0e63', "NONE", 5000)
+        exports["npwd"]:createNotification({
+            notisId = "npwd:towJobAccept",
+            appId = "MESSAGES",
+            content = "Hola, tu solicitud de grúa ha sido aceptada por " .. towDriverName .. ". Espera a que llegue el servicio.",
+            secondaryTitle = "Servicio de Grúa",
+            keepOpen = false,
+            duration = 5000,
+            path = "/services",
+        })
     else
-        exports['qb-phone']:PhoneNotification('Tow request declined.', 'Declined.', '#9f0e63', "NONE", 5000)
+        exports["npwd"]:createNotification({
+            notisId = "npwd:towJobDecline",
+            appId = "MESSAGES",
+            content = "Hola, tu solicitud de grúa ha sido rechazada. Intentalo más tarde.",
+            secondaryTitle = "Servicio de Grúa",
+            keepOpen = false,
+            duration = 5000,
+            path = "/services",
+        })
     end
 end)
 

@@ -1,4 +1,3 @@
-local PlayerJob = {}
 local JobsDone = 0
 local NpcOn = false
 local CurrentLocation = {}
@@ -9,7 +8,6 @@ local selectedVeh = nil
 local ranWorkThread = false
 local towout = false
 local cryptostick = false
-
 local JobStarted = false
 
 -- Functions
@@ -113,25 +111,19 @@ end
 
 AddEventHandler('onResourceStop', function(resource)
     if resource == GetCurrentResourceName() then
-            DeleteEntity(towped)
-            DeleteEntity(payped)
+        DeleteEntity(towped)
+        DeleteEntity(payped)
     end
 end)
 
-AddEventHandler('onResourceStart', function(resourceName)
-    if (GetCurrentResourceName() ~= resourceName) then
-        PlayerJob = QBCore.Functions.GetPlayerData().job
-    end 
-end)
-
-function deliverVehicle(vehicle)
+local function deliverVehicle(vehicle)
     DeleteVehicle(vehicle)
     RemoveBlip(CurrentBlip2)
     JobsDone = JobsDone + 1
     VehicleSpawned = false
 end
 
-function getnewvehicle()
+local function getnewvehicle()
     local randomLocation = getRandomVehicleLocation()
     CurrentLocation.x = Config.Locations["towspots"][randomLocation].coords.x
     CurrentLocation.y = Config.Locations["towspots"][randomLocation].coords.y
@@ -218,7 +210,6 @@ local function doCarDamage(currentVehicle)
 end
 
 -- Old Menu Code (being removed)
-
 local function MenuGarage()
     local towMenu = {
         {
@@ -287,9 +278,8 @@ CreateThread(function()
 end)
 
 RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
-    PlayerJob = QBCore.Functions.GetPlayerData().job
 
-    if PlayerJob.name == "tow" then
+    if PlayerData.job.name == "tow" then
         local TowBlip = AddBlipForCoord(Config.Locations["main"].coords.x, Config.Locations["main"].coords.y, Config.Locations["main"].coords.z)
         SetBlipSprite(TowBlip, 477)
         SetBlipDisplay(TowBlip, 4)
@@ -303,10 +293,9 @@ RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
     end
 end)
 
-RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
-    PlayerJob = JobInfo
+RegisterNetEvent('QBCore:Client:OnJobUpdate', function()
 
-    if PlayerJob.name == "tow" then
+    if PlayerData.job.name == "tow" then
         local TowBlip = AddBlipForCoord(Config.Locations["main"].coords.x, Config.Locations["main"].coords.y, Config.Locations["main"].coords.z)
         SetBlipSprite(TowBlip, 477)
         SetBlipDisplay(TowBlip, 4)
@@ -324,7 +313,6 @@ end)
 AddEventHandler('onResourceStart', function(resource)
     if resource == GetCurrentResourceName() then
       Wait(100)
-      PlayerJob = QBCore.Functions.GetPlayerData().job
         local TowBlip = AddBlipForCoord(Config.Locations["main"].coords.x, Config.Locations["main"].coords.y, Config.Locations["main"].coords.z)
         SetBlipSprite(TowBlip, 477)
         SetBlipDisplay(TowBlip, 4)
@@ -339,7 +327,7 @@ AddEventHandler('onResourceStart', function(resource)
 end)
 
 RegisterNetEvent('jobs:client:ToggleNpc', function()
-    if QBCore.Functions.GetPlayerData().job.name == "tow" then
+    if PlayerData.job.name == "tow" then
         if CurrentTow ~= nil then
             QBCore.Functions.Notify(Lang:t('error.finish_your_work'), "error")
             return
@@ -529,9 +517,8 @@ function RunWorkThread()
 
         CreateThread(function()
             local shownHeader = false
-            PlayerJob = QBCore.Functions.GetPlayerData().job
 
-            while LocalPlayer.state.isLoggedIn and PlayerJob.name == "tow" do
+            while LocalPlayer.state.isLoggedIn and PlayerData.job.name == "tow" do
                 local sleep = 1000
                 local pos = GetEntityCoords(cache.ped)
                 local vehicleCoords = vector3(Config.Locations["vehicle"].coords.x, Config.Locations["vehicle"].coords.y, Config.Locations["vehicle"].coords.z)
